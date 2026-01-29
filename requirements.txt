@@ -1,0 +1,31 @@
+# Core Web Framework
+streamlit>=1.30.0
+
+# Video Download
+yt-dlp>=2023.0.0
+
+# Computer Vision & Image Processing
+opencv-python-headless>=4.8.0
+Pillow>=10.0.0
+
+# OCR (Optical Character Recognition)
+easyocr>=1.7.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# Translation
+deep-translator>=1.11.0
+
+# Scientific Computing & Signal Processing
+scipy>=1.10.0
+numpy>=1.24.0
+
+# Data Manipulation
+pandas>=2.0.0
+
+# UI Components (optional, for manual crop feature)
+streamlit-drawable-canvas>=0.8.0
+
+# Additional Dependencies
+requests>=2.31.0
+beautifulsoup4>=4.12.0
