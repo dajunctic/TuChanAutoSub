@@ -1,220 +1,89 @@
-# AutoViSub 📺
+# AutoViSub Pro 🎬
+**Bilibili Video Downloader & Advanced Subtitle Automation Suite**
 
-**Bilibili Video Downloader & Automatic Subtitle Extractor/Translator**
-
-Tự động tải video từ Bilibili, trích xuất phụ đề cứng (hard subtitles) bằng OCR, dịch sang tiếng Việt và xuất file SRT.
+AutoViSub Pro là giải pháp toàn diện để tải video từ Bilibili, tự động trích xuất phụ đề cứng (hard subtitles), dịch thuật bằng AI và lồng tiếng (VoiceOver) hoàn toàn tự động.
 
 ---
 
-## ✨ Tính năng
+## ✨ Tính năng nổi bật
 
-- 🎬 **Tải video từ Bilibili** với thanh tiến trình real-time
-- 🤖 **Tự động phát hiện vùng phụ đề** bằng AI (phân tích frame differences)
-- 📝 **OCR thông minh** sử dụng EasyOCR với hỗ trợ đa ngôn ngữ
-- 🌐 **Dịch tự động** sang tiếng Việt
-- 📊 **Hiển thị real-time** kết quả OCR trong bảng
-- 💾 **Xuất file SRT** chuẩn để sử dụng với video player
-- 🎨 **Giao diện web đẹp** với Streamlit
+### 1. 📥 Tải Video & Quản lý Project
+- **Bilibili Downloader:** Tải video chất lượng cao với thanh tiến trình thời gian thực.
+- **Project Hub:** Tự động lưu trạng thái làm việc. Bạn có thể quay lại project cũ bất cứ lúc nào.
+- **Auto-Load:** Ghi nhớ video đang xử lý gần nhất.
+
+### 2. 🔍 Nhận dạng Phụ đề (OCR)
+- **RapidVideOCR (Khuyên dùng):** Hiệu suất cực cao, hỗ trợ GPU (ONNX), độ chính xác tuyệt vời cho tiếng Hoa, Nhật, Hàn.
+- **EasyOCR:** Engine linh hoạt cho các ngôn ngữ phổ thông.
+- **Auto-Detect Region:** Tự động phân tích video để tìm vùng chứa phụ đề, không cần quét toàn bộ khung hình giúp tăng tốc 3-5 lần.
+- **Real-time Preview:** Xem trực tiếp quá trình quét phụ đề ngay trên giao diện.
+
+### 3. 🌐 Dịch thuật AI Thông minh
+- **Gemini AI (Pro/Flash):** Dịch thuật ngữ cảnh siêu chuẩn, hỗ trợ dịch theo lô (batch) cực nhanh. Đặc biệt tối ưu cho truyện Tiên hiệp/Cổ trang với Prompt Hán Việt chuẩn.
+- **LM Studio (Local LLM):** Sử dụng các mô hình như Gemma, Llama chạy offline hoàn toàn.
+- **Google Translate:** Miễn phí và ổn định.
+
+### 4. 🎙️ Lồng tiếng (VoiceOver) & Rendering
+- **Đa dạng Voice:** Hỗ trợ Edge-TTS (Microsoft), gTTS và **VieNeu** (Model AI lồng tiếng Việt Nam cao cấp).
+- **Auto-Speedup:** Tự động tăng tốc giọng đọc để khớp với thời gian xuất hiện của phụ đề nếu câu thoại quá dài.
+- **Professional Rendering:** 
+  - Ghi đè phụ đề tiếng Việt lên vùng phụ đề gốc với mask bo góc chuyên nghiệp.
+  - Hỗ trợ chèn Logo cá nhân (Watermark) tùy chỉnh vị trí/kích thước.
+  - Mix âm thanh nền (background music) và giọng lồng tiếng thông minh.
 
 ---
 
 ## 🚀 Cài đặt nhanh
 
 ### Bước 1: Clone repository
-
 ```bash
-git clone <repository-url>
-cd AutoSub
+git clone https://github.com/your-repo/AutoViSub.git
+cd AutoViSub
 ```
 
-### Bước 2: Chạy setup tự động
-
+### Bước 2: Chạy script Setup tự động
 ```bash
 python setup.py
 ```
-
-Script này sẽ tự động:
-- ✅ Tải FFmpeg (cho xử lý video)
-- ✅ Tải yt-dlp (cho download Bilibili)
-- ✅ Tạo các thư mục cần thiết
+*Script này sẽ tải FFmpeg, yt-dlp và tạo các thư mục cần thiết.*
 
 ### Bước 3: Cài đặt thư viện Python
-
 ```bash
 pip install -r requirements.txt
 ```
+*Lưu ý: Nếu bạn có GPU NVIDIA, hãy đảm bảo đã cài CUDA để RapidOCR và Torch chạy nhanh nhất.*
 
-**Lưu ý:** Quá trình cài đặt có thể mất 5-10 phút do cần tải PyTorch và EasyOCR.
-
-### Bước 4: Chạy ứng dụng
-
+### Bước 4: Khởi chạy ứng dụng
 ```bash
 streamlit run main.py
 ```
 
-Ứng dụng sẽ mở tại: `http://localhost:8501`
+---
+
+## 🛠️ Quy trình sử dụng (Workflow)
+
+1. **📁 Project Selection:** Dán link Bilibili hoặc chọn video có sẵn trong máy.
+2. **🔍 Subtitle Extraction:** Chọn ngôn ngữ gốc và chạy OCR. Bạn có thể để hệ thống tự phát hiện vùng hoặc vẽ thủ công.
+3. **🌐 Translation:** Chọn Engine dịch (Google/Gemini). Nếu dùng Gemini, hãy nhập API Key trong phần Global Settings.
+4. **🎙️ VoiceOver:** Chọn giọng đọc và phong cách. Hệ thống sẽ tự tạo file audio cho từng câu.
+5. **🎬 Video Rendering:** Tùy chỉnh font chữ, logo và xuất video cuối cùng.
+
+> 💡 **Mẹo:** Sử dụng nút **"🚀 START FULL AUTO MODE"** để hệ thống tự động chạy từ đầu đến cuối mà không cần can thiệp.
 
 ---
 
-## 📋 Yêu cầu hệ thống
-
-- **Python:** 3.8 - 3.11 (khuyến nghị 3.10)
-- **RAM:** Tối thiểu 4GB (khuyến nghị 8GB+)
-- **Disk:** ~3GB cho thư viện
-- **GPU:** Không bắt buộc, nhưng tăng tốc OCR đáng kể nếu có CUDA
-
----
-
-## 🎯 Hướng dẫn sử dụng
-
-### 1. Tải video
-
-1. Dán URL video Bilibili vào ô input
-2. Bấm **"Download Video"**
-3. Đợi tải xong (có thanh tiến trình)
-
-### 2. Trích xuất phụ đề (2 cách)
-
-#### Cách 1: Tự động (Khuyến nghị) ⭐
-
-1. Bấm nút **"🚀 Auto-Detect & Extract Subtitles"**
-2. Hệ thống sẽ:
-   - Tự động phát hiện vùng phụ đề
-   - Chạy OCR ngay lập tức
-   - Hiển thị kết quả real-time trong bảng
-
-#### Cách 2: Thủ công
-
-1. Mở **"Manual Adjustment"**
-2. Vẽ khung chọn vùng phụ đề trên ảnh
-3. Bấm **"Extract & Translate Subtitles"**
-
-### 3. Dịch và xuất file
-
-1. Sau khi OCR xong, bấm **"🌐 Translate to Vietnamese"**
-2. Xem bảng dịch
-3. Bấm **"📥 Download SRT File"** để tải file phụ đề
+## 📦 Yêu cầu hệ thống
+- **OS:** Windows (do có sử dụng ffmpeg.exe đi kèm)
+- **Python:** 3.10+
+- **GPU:** NVIDIA GPU (khuyên dùng để chạy RapidOCR & Gemini Translation Batch)
+- **Bộ nhớ:** Trống ít nhất 5GB cho các model AI
 
 ---
 
-## 📁 Cấu trúc project
+## 🤝 Đóng góp & Bản quyền
+Project được phát triển bởi **TuChan**. Mọi ý kiến đóng góp vui lòng mở Issue trên GitHub.
 
-```
-AutoSub/
-├── main.py                    # Ứng dụng Streamlit chính
-├── downloader.py              # Module tải video
-├── sub_processor.py           # Module OCR và dịch
-├── auto_detect_region.py      # Module tự động phát hiện vùng phụ đề
-├── setup.py                   # Script cài đặt tự động
-├── setup_ffmpeg.py            # Script cài FFmpeg (legacy)
-├── requirements.txt           # Danh sách thư viện Python
-├── README.md                  # File này
-├── downloads/                 # Thư mục chứa video đã tải
-└── .gitignore                 # Git ignore file
-```
+**License:** MIT
 
 ---
-
-## 🛠️ Xử lý sự cố
-
-### Lỗi: "FFmpeg not found"
-
-```bash
-python setup.py
-```
-
-Hoặc tải thủ công từ [ffmpeg.org](https://ffmpeg.org/download.html) và đặt `ffmpeg.exe` vào thư mục gốc.
-
-### Lỗi: "CUDA out of memory"
-
-Giảm số lượng frame xử lý hoặc tắt GPU:
-- Mở `sub_processor.py`
-- Sửa `self.reader = easyocr.Reader(langs, gpu=False)`
-
-### Lỗi: "No subtitles detected"
-
-- Kiểm tra video có phụ đề cứng không (không phải soft subs)
-- Thử điều chỉnh vùng crop thủ công
-- Kiểm tra ngôn ngữ đã chọn đúng chưa
-
-### OCR chậm
-
-- Sử dụng GPU nếu có (cài CUDA + cuDNN)
-- Giảm độ phân giải video
-- Tăng `step` trong `sub_processor.py` (line 84)
-
----
-
-## 🔧 Cấu hình nâng cao
-
-### Thay đổi ngôn ngữ OCR
-
-Mở sidebar → chọn **Source Language**
-
-### Tùy chỉnh vùng phụ đề mặc định
-
-Sửa file `sub_processor.py`, dòng 70:
-
-```python
-y1 = int(height * 0.75)  # 0.75 = 75% từ trên xuống
-```
-
-### Thay đổi ngưỡng confidence OCR
-
-Sửa file `sub_processor.py`, dòng 113:
-
-```python
-texts = [item[1] for item in result if item[2] > 0.4]  # 0.4 = 40%
-```
-
----
-
-## 📦 Thư viện sử dụng
-
-| Thư viện | Mục đích |
-|----------|----------|
-| `streamlit` | Giao diện web |
-| `yt-dlp` | Tải video Bilibili |
-| `opencv-python` | Xử lý video/hình ảnh |
-| `easyocr` | Nhận dạng ký tự quang học |
-| `torch` | Deep learning framework |
-| `deep-translator` | Dịch thuật |
-| `scipy` | Xử lý tín hiệu (auto-detect) |
-| `pandas` | Hiển thị bảng dữ liệu |
-
----
-
-## 🤝 Đóng góp
-
-Mọi đóng góp đều được hoan nghênh! Vui lòng:
-
-1. Fork repository
-2. Tạo branch mới (`git checkout -b feature/AmazingFeature`)
-3. Commit changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to branch (`git push origin feature/AmazingFeature`)
-5. Mở Pull Request
-
----
-
-## 📝 License
-
-MIT License - Xem file `LICENSE` để biết thêm chi tiết.
-
----
-
-## 🙏 Credits
-
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) - Video downloader
-- [EasyOCR](https://github.com/JaidedAI/EasyOCR) - OCR engine
-- [Streamlit](https://streamlit.io/) - Web framework
-- [FFmpeg](https://ffmpeg.org/) - Video processing
-
----
-
-## 📧 Liên hệ
-
-Nếu có vấn đề hoặc câu hỏi, vui lòng tạo Issue trên GitHub.
-
----
-
-**Made with ❤️ for Vietnamese subtitle enthusiasts**
+**Made with ❤️ for the Subbing Community**

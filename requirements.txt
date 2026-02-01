@@ -1,31 +1,36 @@
 # Core Web Framework
 streamlit>=1.30.0
+streamlit-drawable-canvas>=0.8.0
 
 # Video Download
 yt-dlp>=2023.0.0
 
 # Computer Vision & Image Processing
-opencv-python-headless>=4.8.0
+opencv-python>=4.8.0
 Pillow>=10.0.0
 
 # OCR (Optical Character Recognition)
 easyocr>=1.7.0
+rapidocr_onnxruntime>=1.3.0
+onnxruntime-gpu>=1.16.0  # Recommended for RapidOCR GPU acceleration
 torch>=2.0.0
 torchvision>=0.15.0
 
 # Translation
 deep-translator>=1.11.0
+requests>=2.31.0
 
-# Scientific Computing & Signal Processing
+# Text-to-Speech (VoiceOver)
+edge-tts>=6.1.0
+pydub>=0.25.1
+gtts>=2.5.0
+vieneu>=0.1.0
+
+# Scientific Computing & Data
 scipy>=1.10.0
 numpy>=1.24.0
-
-# Data Manipulation
 pandas>=2.0.0
 
-# UI Components (optional, for manual crop feature)
-streamlit-drawable-canvas>=0.8.0
-
 # Additional Dependencies
-requests>=2.31.0
 beautifulsoup4>=4.12.0
+python-dotenv>=1.0.0
