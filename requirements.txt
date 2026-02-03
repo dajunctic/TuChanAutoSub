@@ -2,6 +2,10 @@
 streamlit>=1.30.0
 streamlit-drawable-canvas>=0.8.0
 
+# Desktop GUI Framework (PyQt6)
+PyQt6>=6.10.0
+PyQt6-WebEngine>=6.10.0
+
 # Video Download
 yt-dlp>=2023.0.0
 
