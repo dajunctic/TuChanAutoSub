@@ -151,7 +151,7 @@ class TranslateTab(QWidget):
         
         self.lmstudio_group.setLayout(lmstudio_layout)
         self.lmstudio_group.setVisible(False)
-        settings_layout.addWidget(self.lmstudio_group)
+        # settings_layout.addWidget(self.lmstudio_group)
         
         # Gemini settings
         self.gemini_group = QGroupBox("Gemini API Settings")
@@ -177,7 +177,8 @@ class TranslateTab(QWidget):
         
         self.gemini_group.setLayout(gemini_layout)
         self.gemini_group.setVisible(False)
-        settings_layout.addWidget(self.gemini_group)
+        # Hide these as per request to move keys to settings
+        # settings_layout.addWidget(self.gemini_group) 
         
         # Custom prompt
         prompt_layout = QVBoxLayout()
@@ -190,6 +191,13 @@ class TranslateTab(QWidget):
         
         settings_group.setLayout(settings_layout)
         layout.addWidget(settings_group)
+        
+        # Connect signals for auto-save
+        self.engine_combo.currentIndexChanged.connect(self.auto_save)
+        self.lmstudio_url.textChanged.connect(self.auto_save)
+        self.gemini_keys_text.textChanged.connect(self.auto_save)
+        self.gemini_batch_spin.valueChanged.connect(self.auto_save)
+        self.custom_prompt.textChanged.connect(self.auto_save)
         
         # Progress
         progress_group = QGroupBox("Translation Progress")
@@ -251,8 +259,8 @@ class TranslateTab(QWidget):
         
     def on_engine_changed(self, engine):
         """Handle engine selection change"""
-        self.lmstudio_group.setVisible(engine == "lmstudio")
-        self.gemini_group.setVisible(engine == "gemini")
+        # Kept for compatibility but visibility handled by request
+        pass
         
     def load_srt(self):
         """Load SRT file"""
@@ -313,9 +321,14 @@ class TranslateTab(QWidget):
         
         # Validate settings
         if engine == "gemini":
-            keys_text = self.gemini_keys_text.toPlainText().strip()
+            # Pull from settings tab first
+            keys_text = self.main_window.settings_tab.gemini_keys.toPlainText().strip()
+            # Fallback to project-specific if global is empty (though group is hidden)
             if not keys_text:
-                QMessageBox.warning(self, "Warning", "Please enter at least one Gemini API key")
+                keys_text = self.gemini_keys_text.toPlainText().strip()
+                
+            if not keys_text:
+                QMessageBox.warning(self, "Warning", "Please enter Gemini API keys in Settings tab")
                 return
             gemini_keys = [k.strip() for k in keys_text.split('\n') if k.strip()]
         else:
@@ -456,3 +469,8 @@ class TranslateTab(QWidget):
             'custom_prompt': self.custom_prompt.toPlainText(),
             'gemini_batch_size': self.gemini_batch_spin.value()
         }
+
+    def auto_save(self):
+        """Auto-save project state"""
+        if self.main_window:
+            self.main_window.save_project(silent=True)

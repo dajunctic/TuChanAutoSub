@@ -223,10 +223,11 @@ class MainWindow(QMainWindow):
         self.translate_tab.on_project_loaded(video_path, self.project_data)
         self.render_tab.on_project_loaded(video_path, self.project_data)
         
-    def save_project(self):
+    def save_project(self, silent=False):
         """Save current project state"""
         if not self.current_project:
-            QMessageBox.information(self, "Info", "No project loaded")
+            if not silent:
+                QMessageBox.information(self, "Info", "No project loaded")
             return
             
         project_folder = self.get_project_folder(self.current_project)

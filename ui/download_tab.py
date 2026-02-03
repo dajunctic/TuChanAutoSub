@@ -47,6 +47,103 @@ class DownloadWorker(QThread):
             self.error.emit(f"Download error: {str(e)}")
 
 
+class AutoWorkflowWorker(QThread):
+    """Worker thread for full automation: Download -> OCR -> Translate -> Render"""
+    progress = pyqtSignal(float)
+    status = pyqtSignal(str)
+    finished = pyqtSignal(str)
+    error = pyqtSignal(str)
+    
+    def __init__(self, url, output_dir, settings):
+        super().__init__()
+        self.url = url
+        self.output_dir = output_dir
+        self.settings = settings
+        
+    def run(self):
+        try:
+            video_path = None
+            
+            # 1. Download (if URL provided)
+            if self.url and self.url.startswith("http"):
+                self.status.emit("📥 Step 1/4: Downloading video...")
+                
+                def dl_progress(p): self.progress.emit(p * 0.2) # First 20%
+                
+                video_path = download_bilibili_video(self.url, self.output_dir, progress_callback=dl_progress)
+                if not video_path:
+                    self.error.emit("Download failed")
+                    return
+            else:
+                # Assume self.url is already a file path
+                video_path = self.url
+                self.progress.emit(20)
+
+            # 2. OCR (Auto Detect + Extract)
+            self.status.emit("🔍 Step 2/4: Detecting region & Extracting subtitles...")
+            from auto_detect_region import auto_detect_subtitle_region
+            
+            def ocr_progress(p): self.progress.emit(20 + p * 40) # 20% to 60%
+            
+            region = auto_detect_subtitle_region(video_path, progress_callback=None) # Skip inner progress for speed
+            
+            # Lazy import processor
+            from sub_processor import SubtitleProcessor
+            processor = SubtitleProcessor(lang="ch", engine="rapid")
+            
+            subs = processor.extract_subtitles(
+                video_path, 
+                crop_region=region,
+                progress_callback=lambda p: self.progress.emit(20 + p * 40),
+                step=5
+            )
+            
+            if not subs:
+                self.error.emit("No subtitles found during OCR")
+                return
+
+            # 3. Translate
+            self.status.emit("🌐 Step 3/4: Translating to Vietnamese...")
+            translated = processor.translate_subtitles(
+                subs,
+                progress_callback=lambda p: self.progress.emit(60 + p * 20), # 60% to 80%
+                engine=self.settings.get("trans_engine", "google"),
+                gemini_keys=self.settings.get("gemini_keys")
+            )
+            
+            # Save SRT
+            project_folder = self.get_project_folder(video_path)
+            srt_path = os.path.join(project_folder, "subtitles_vi.srt")
+            processor.save_to_srt(translated, srt_path)
+
+            # 4. Render
+            self.status.emit("🎬 Step 4/4: Rendering final video...")
+            from video_renderer import render_video_with_vietnamese_subs
+            
+            output_video = os.path.join(project_folder, f"translated_{os.path.basename(video_path)}")
+            
+            render_video_with_vietnamese_subs(
+                video_path,
+                translated,
+                output_video,
+                subtitle_region=region,
+                progress_callback=lambda p: self.progress.emit(80 + p * 20) # 80% to 100%
+            )
+            
+            self.status.emit("✅ All steps completed!")
+            self.finished.emit(output_video)
+            
+        except Exception as e:
+            self.error.emit(f"Automation error: {str(e)}")
+
+    def get_project_folder(self, video_path):
+        video_name = os.path.splitext(os.path.basename(video_path))[0]
+        projects_dir = os.path.abspath("projects")
+        folder = os.path.join(projects_dir, video_name)
+        os.makedirs(folder, exist_ok=True)
+        return folder
+
+
 class DownloadTab(QWidget):
     """Tab for downloading videos from URLs"""
     
@@ -91,6 +188,7 @@ class DownloadTab(QWidget):
         url_input_layout = QHBoxLayout()
         self.url_input = QLineEdit()
         self.url_input.setPlaceholderText("Enter Bilibili video URL (e.g., https://www.bilibili.com/video/BV...)")
+        self.url_input.textChanged.connect(self.auto_save)
         self.url_input.returnPressed.connect(self.start_download)
         url_input_layout.addWidget(self.url_input)
         
@@ -109,6 +207,7 @@ class DownloadTab(QWidget):
         
         self.output_path = QLineEdit()
         self.output_path.setText(os.path.abspath("downloads"))
+        self.output_path.textChanged.connect(self.auto_save)
         self.output_path.setReadOnly(True)
         output_layout.addWidget(self.output_path)
         
@@ -145,6 +244,28 @@ class DownloadTab(QWidget):
         
         log_group.setLayout(log_layout)
         layout.addWidget(log_group)
+        
+        # Automation Group
+        auto_group = QGroupBox("🚀 Workflow Automation")
+        auto_layout = QVBoxLayout()
+        
+        auto_desc = QLabel("Run the complete pipeline from OCR to Final Video Render automatically.")
+        auto_desc.setStyleSheet("color: #80848E; font-size: 11px; margin-bottom: 5px;")
+        auto_layout.addWidget(auto_desc)
+        
+        self.auto_btn = QPushButton("🔥 START FULL AUTOMATIC PROCESS")
+        self.auto_btn.setStyleSheet("""
+            background-color: #5865F2;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            padding: 10px;
+        """)
+        self.auto_btn.clicked.connect(self.start_auto_workflow)
+        auto_layout.addWidget(self.auto_btn)
+        
+        auto_group.setLayout(auto_layout)
+        layout.addWidget(auto_group)
         
         # Buttons
         button_layout = QHBoxLayout()
@@ -238,6 +359,55 @@ class DownloadTab(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             self.main_window.load_project(file_path)
             
+    def start_auto_workflow(self):
+        """Start the full automation pipeline"""
+        url = self.url_input.text().strip()
+        if not url:
+            QMessageBox.warning(self, "Warning", "Please enter a video URL or select a video file first")
+            return
+            
+        output_dir = self.output_path.text()
+        
+        gemini_keys_raw = self.main_window.settings_tab.gemini_keys.toPlainText().strip()
+        gemini_keys = [k.strip() for k in gemini_keys_raw.split('\n') if k.strip()] if gemini_keys_raw else []
+        
+        settings = {
+            "trans_engine": self.main_window.settings_tab.default_trans_engine.currentText().lower()
+            if hasattr(self.main_window, 'settings_tab') else "google",
+            "gemini_keys": gemini_keys
+        }
+        
+        if settings["trans_engine"] == "gemini" and not gemini_keys:
+            QMessageBox.warning(self, "Warning", "Please enter Gemini API keys in Settings tab first")
+            return
+        
+        # Disable UI
+        self.auto_btn.setEnabled(False)
+        self.download_btn.setEnabled(False)
+        self.cancel_btn.setEnabled(True)
+        self.progress_bar.setValue(0)
+        self.log_text.clear()
+        self.on_log("🚀 Starting Full Automation Workflow...")
+        
+        self.auto_worker = AutoWorkflowWorker(url, output_dir, settings)
+        self.auto_worker.progress.connect(self.on_progress)
+        self.auto_worker.status.connect(self.on_log)
+        self.auto_worker.error.connect(self.on_error)
+        
+        def on_finished(output_video):
+            self.on_log(f"🎉 Process completed! Output saved to: {output_video}")
+            self.reset_ui()
+            self.auto_btn.setEnabled(True)
+            
+            # Show completion message
+            QMessageBox.information(self, "Success", f"Full automation completed successfully!\n\nVideo saved to:\n{output_video}")
+            
+            # Load as project
+            self.main_window.load_project(url if os.path.isfile(url) else output_video)
+            
+        self.auto_worker.finished.connect(on_finished)
+        self.auto_worker.start()
+
     def on_error(self, error_msg):
         """Handle download error"""
         self.on_log(f"❌ Error: {error_msg}")
@@ -268,3 +438,8 @@ class DownloadTab(QWidget):
             'url': self.url_input.text(),
             'output_path': self.output_path.text()
         }
+
+    def auto_save(self):
+        """Auto-save project state"""
+        if self.main_window:
+            self.main_window.save_project(silent=True)

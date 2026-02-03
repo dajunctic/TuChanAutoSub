@@ -316,6 +316,13 @@ class OCRTab(QWidget):
         settings_group.setLayout(settings_layout)
         right_panel.addWidget(settings_group)
         
+        # Connect signals for auto-save
+        self.engine_combo.currentIndexChanged.connect(self.auto_save)
+        self.lang_combo.currentIndexChanged.connect(self.auto_save)
+        self.min_text_spin.valueChanged.connect(self.auto_save)
+        self.min_dur_spin.valueChanged.connect(self.auto_save)
+        self.step_spin.valueChanged.connect(self.auto_save)
+        
         # Progress
         progress_group = QGroupBox("Extraction Progress")
         progress_layout = QVBoxLayout()
@@ -662,3 +669,8 @@ class OCRTab(QWidget):
             'min_duration': self.min_dur_spin.value(),
             'step': self.step_spin.value()
         }
+
+    def auto_save(self):
+        """Auto-save project state"""
+        if self.main_window:
+            self.main_window.save_project(silent=True)

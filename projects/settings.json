@@ -1,0 +1,9 @@
+{
+  "downloads_path": "",
+  "projects_path": "",
+  "default_ocr_engine": "rapid",
+  "default_lang": "ch",
+  "default_trans_engine": "gemini",
+  "auto_save": true,
+  "auto_load": true
+}

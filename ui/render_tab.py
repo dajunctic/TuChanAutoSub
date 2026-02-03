@@ -326,3 +326,8 @@ class RenderTab(QWidget):
         return {
             'output_path': self.output_input.text()
         }
+
+    def auto_save(self):
+        """Auto-save project state"""
+        if self.main_window:
+            self.main_window.save_project(silent=True)

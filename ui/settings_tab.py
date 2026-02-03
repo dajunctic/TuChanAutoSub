@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QGroupBox, QLineEdit, QFileDialog,
     QMessageBox, QCheckBox, QComboBox, QSpinBox,
-    QFormLayout, QFrame, QScrollArea
+    QFormLayout, QFrame, QScrollArea, QPlainTextEdit
 )
 from PyQt6.QtCore import Qt
 
@@ -91,17 +91,15 @@ class SettingsTab(QWidget):
         # Engine Defaults
         engine_group, engine_form = create_group("Engine Preferences")
         
-        self.default_ocr_engine = QComboBox()
-        self.default_ocr_engine.addItems(["easyocr", "rapid"])
-        engine_form.addRow("Primary OCR Engine:", self.default_ocr_engine)
-        
-        self.default_lang = QComboBox()
-        self.default_lang.addItems(["ch", "en", "ja", "ko"])
-        engine_form.addRow("Default Source Language:", self.default_lang)
-        
         self.default_trans_engine = QComboBox()
-        self.default_trans_engine.addItems(["google", "gemini", "lmstudio"])
+        self.default_trans_engine.addItems(["gemini", "google", "lmstudio"])
         engine_form.addRow("Preferred Translation API:", self.default_trans_engine)
+        
+        # Gemini Keys
+        self.gemini_keys = QPlainTextEdit()
+        self.gemini_keys.setPlaceholderText("Enter Gemini API Keys here (one per line)")
+        self.gemini_keys.setMinimumHeight(120)
+        engine_form.addRow("Gemini API Keys:", self.gemini_keys)
         
         layout.addWidget(engine_group)
 
@@ -153,27 +151,6 @@ class SettingsTab(QWidget):
         info_label.setWordWrap(True)
         layout.addWidget(info_label)
         
-    def browse_ffmpeg(self):
-        """Browse for FFmpeg executable"""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select FFmpeg Executable",
-            "",
-            "Executable Files (*.exe);;All Files (*.*)"
-        )
-        if file_path:
-            self.ffmpeg_path.setText(file_path)
-            
-    def browse_ffprobe(self):
-        """Browse for FFprobe executable"""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self,
-            "Select FFprobe Executable",
-            "",
-            "Executable Files (*.exe);;All Files (*.*)"
-        )
-        if file_path:
-            self.ffprobe_path.setText(file_path)
             
     def browse_downloads(self):
         """Browse for downloads folder"""
@@ -198,13 +175,10 @@ class SettingsTab(QWidget):
     def save_settings(self):
         """Save settings to file"""
         self.settings = {
-            'ffmpeg_path': self.ffmpeg_path.text(),
-            'ffprobe_path': self.ffprobe_path.text(),
             'downloads_path': self.downloads_path.text(),
             'projects_path': self.projects_path.text(),
-            'default_ocr_engine': self.default_ocr_engine.currentText(),
-            'default_lang': self.default_lang.currentText(),
             'default_trans_engine': self.default_trans_engine.currentText(),
+            'gemini_keys': self.gemini_keys.toPlainText(),
             'auto_save': self.auto_save_checkbox.isChecked(),
             'auto_load': self.auto_load_checkbox.isChecked()
         }
@@ -227,26 +201,16 @@ class SettingsTab(QWidget):
                     self.settings = json.load(f)
                     
                 # Apply settings to UI
-                if 'ffmpeg_path' in self.settings:
-                    self.ffmpeg_path.setText(self.settings['ffmpeg_path'])
-                if 'ffprobe_path' in self.settings:
-                    self.ffprobe_path.setText(self.settings['ffprobe_path'])
                 if 'downloads_path' in self.settings:
                     self.downloads_path.setText(self.settings['downloads_path'])
                 if 'projects_path' in self.settings:
                     self.projects_path.setText(self.settings['projects_path'])
-                if 'default_ocr_engine' in self.settings:
-                    index = self.default_ocr_engine.findText(self.settings['default_ocr_engine'])
-                    if index >= 0:
-                        self.default_ocr_engine.setCurrentIndex(index)
-                if 'default_lang' in self.settings:
-                    index = self.default_lang.findText(self.settings['default_lang'])
-                    if index >= 0:
-                        self.default_lang.setCurrentIndex(index)
                 if 'default_trans_engine' in self.settings:
                     index = self.default_trans_engine.findText(self.settings['default_trans_engine'])
                     if index >= 0:
                         self.default_trans_engine.setCurrentIndex(index)
+                if 'gemini_keys' in self.settings:
+                    self.gemini_keys.setPlainText(self.settings['gemini_keys'])
                 if 'auto_save' in self.settings:
                     self.auto_save_checkbox.setChecked(self.settings['auto_save'])
                 if 'auto_load' in self.settings:
@@ -265,13 +229,10 @@ class SettingsTab(QWidget):
         )
         
         if reply == QMessageBox.StandardButton.Yes:
-            self.ffmpeg_path.setText(os.path.abspath("ffmpeg.exe"))
-            self.ffprobe_path.setText(os.path.abspath("ffprobe.exe"))
             self.downloads_path.setText(os.path.abspath("downloads"))
             self.projects_path.setText(os.path.abspath("projects"))
-            self.default_ocr_engine.setCurrentIndex(0)
-            self.default_lang.setCurrentIndex(0)
             self.default_trans_engine.setCurrentIndex(0)
+            self.gemini_keys.setPlainText("")
             self.auto_save_checkbox.setChecked(True)
             self.auto_load_checkbox.setChecked(True)
             
