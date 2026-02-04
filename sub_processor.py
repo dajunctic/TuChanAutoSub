@@ -1,6 +1,6 @@
 import cv2
 import os
-import easyocr
+# import easyocr (Moved to lazy-load inside class)
 from deep_translator import GoogleTranslator
 import datetime
 import warnings
@@ -16,7 +16,7 @@ if user_site not in sys.path:
     sys.path.append(user_site)
 
 class SubtitleProcessor:
-    def __init__(self, lang='ch', engine='easyocr'):
+    def __init__(self, lang='ch', engine='rapid'):
         """
         Initialize OCR Engine.
         engine: 'easyocr' or 'rapid'
@@ -28,18 +28,31 @@ class SubtitleProcessor:
         self.translation_engine = 'google' # default
         
         if engine == 'easyocr':
-            # Map simple lang codes to EasyOCR codes
-            lang_map = {'ch': 'ch_sim', 'en': 'en', 'japan': 'ja', 'korean': 'ko'}
-            target_lang = lang_map.get(lang, 'ch_sim')
-            langs = [target_lang]
-            if target_lang != 'en': langs.append('en')
-            print(f"Initializing EasyOCR with languages: {langs}...")
-            self.reader = easyocr.Reader(langs)
+            try:
+                import easyocr
+                # Map simple lang codes to EasyOCR codes
+                lang_map = {'ch': 'ch_sim', 'en': 'en', 'ja': 'ja', 'ko': 'ko'}
+                target_lang = lang_map.get(lang, 'ch_sim')
+                langs = [target_lang]
+                if target_lang != 'en': langs.append('en')
+                print(f"Initializing EasyOCR with languages: {langs}...")
+                self.reader = easyocr.Reader(langs)
+            except Exception as e:
+                print(f"Failed to initialize EasyOCR: {e}")
+                print("Falling back to RapidOCR...")
+                self.engine = 'rapid'
+                self._init_rapid()
         else:
-            print("Initializing RapidOCR with GPU support...")
+            self._init_rapid()
+
+    def _init_rapid(self):
+        try:
+            print("Initializing RapidOCR with GPU/CPU support...")
             from rapidocr_onnxruntime import RapidOCR
-            # RapidOCR will auto-detect CUDA if onnxruntime-gpu is present
             self.rapid_engine = RapidOCR()
+        except Exception as e:
+            print(f"Failed to initialize RapidOCR: {e}")
+            raise e
 
     def formatted_time(self, seconds):
         """Convert seconds to SRT time format: HH:MM:SS,mmm"""

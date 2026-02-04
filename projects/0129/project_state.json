@@ -1,0 +1,30 @@
+{
+  "video_path": "C:/Projects/AutoSub/downloads/0129.mp4",
+  "download": {
+    "url": "file:///C:/Users/Admin/Videos/0129.mp4",
+    "output_path": "C:\\Projects\\AutoSub\\downloads"
+  },
+  "ocr": {
+    "crop_region": [
+      428,
+      924,
+      1071,
+      155
+    ],
+    "engine": "rapid",
+    "lang": "ch",
+    "min_text_len": 2,
+    "min_duration": 0.5,
+    "step": 5
+  },
+  "translate": {
+    "engine": "google",
+    "lmstudio_url": "http://localhost:1234/v1/chat/completions",
+    "gemini_keys": [],
+    "custom_prompt": "",
+    "gemini_batch_size": 80
+  },
+  "render": {
+    "output_path": ""
+  }
+}

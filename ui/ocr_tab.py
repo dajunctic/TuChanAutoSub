@@ -6,7 +6,7 @@ import os
 import cv2
 import json
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
+    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel, 
     QPushButton, QProgressBar, QTextEdit, QGroupBox,
     QComboBox, QSpinBox, QDoubleSpinBox, QCheckBox,
     QListWidget, QMessageBox, QFileDialog, QScrollArea, QFrame
@@ -217,15 +217,12 @@ class OCRTab(QWidget):
         # Left panel - Preview and region selection
         left_panel = QVBoxLayout()
         
-        title = QLabel("🔍 Extract Subtitles with OCR")
-        title.setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 10px;")
-        left_panel.addWidget(title)
         
         # Video preview
-        preview_group = QGroupBox("Video Preview & Region Selection")
         preview_layout = QVBoxLayout()
         
         self.region_selector = RegionSelectorWidget()
+        self.region_selector.setMinimumHeight(550) # Make it taller
         self.region_selector.region_selected.connect(self.on_region_selected)
         preview_layout.addWidget(self.region_selector)
         
@@ -253,65 +250,42 @@ class OCRTab(QWidget):
         region_info_layout.addWidget(clear_region_btn)
         
         preview_layout.addLayout(region_info_layout)
-        preview_group.setLayout(preview_layout)
-        left_panel.addWidget(preview_group)
+        left_panel.addLayout(preview_layout)
         
-        layout.addLayout(left_panel, 2)
+        layout.addLayout(left_panel, 3) # Increased stretch for video
         
         # Right panel - Settings and controls
         right_panel = QVBoxLayout()
         
         # OCR Settings
         settings_group = QGroupBox("OCR Settings")
-        settings_layout = QVBoxLayout()
+        settings_layout = QFormLayout()
+        settings_layout.setSpacing(8)
+        settings_layout.setContentsMargins(10, 20, 10, 10)
         
-        # Engine selection
-        engine_layout = QHBoxLayout()
-        engine_layout.addWidget(QLabel("OCR Engine:"))
         self.engine_combo = QComboBox()
-        self.engine_combo.addItems(["easyocr", "rapid"])
-        engine_layout.addWidget(self.engine_combo)
-        settings_layout.addLayout(engine_layout)
+        self.engine_combo.addItems(["rapid", "easyocr"])
+        settings_layout.addRow("Engine:", self.engine_combo)
         
-        # Language selection
-        lang_layout = QHBoxLayout()
-        lang_layout.addWidget(QLabel("Language:"))
         self.lang_combo = QComboBox()
         self.lang_combo.addItems(["ch", "en", "ja", "ko"])
-        lang_layout.addWidget(self.lang_combo)
-        settings_layout.addLayout(lang_layout)
+        settings_layout.addRow("Language:", self.lang_combo)
         
-        # Min text length
-        min_text_layout = QHBoxLayout()
-        min_text_layout.addWidget(QLabel("Min Text Length:"))
         self.min_text_spin = QSpinBox()
-        self.min_text_spin.setMinimum(1)
-        self.min_text_spin.setMaximum(20)
+        self.min_text_spin.setRange(1, 20)
         self.min_text_spin.setValue(2)
-        min_text_layout.addWidget(self.min_text_spin)
-        settings_layout.addLayout(min_text_layout)
+        settings_layout.addRow("Min Len:", self.min_text_spin)
         
-        # Min duration
-        min_dur_layout = QHBoxLayout()
-        min_dur_layout.addWidget(QLabel("Min Duration (s):"))
         self.min_dur_spin = QDoubleSpinBox()
-        self.min_dur_spin.setMinimum(0.1)
-        self.min_dur_spin.setMaximum(10.0)
+        self.min_dur_spin.setRange(0.1, 10.0)
         self.min_dur_spin.setSingleStep(0.1)
         self.min_dur_spin.setValue(0.5)
-        min_dur_layout.addWidget(self.min_dur_spin)
-        settings_layout.addLayout(min_dur_layout)
+        settings_layout.addRow("Min Dur:", self.min_dur_spin)
         
-        # Frame step
-        step_layout = QHBoxLayout()
-        step_layout.addWidget(QLabel("Frame Step:"))
         self.step_spin = QSpinBox()
-        self.step_spin.setMinimum(1)
-        self.step_spin.setMaximum(30)
+        self.step_spin.setRange(1, 30)
         self.step_spin.setValue(5)
-        self.step_spin.setToolTip("Process every Nth frame (higher = faster but less accurate)")
-        step_layout.addWidget(self.step_spin)
-        settings_layout.addLayout(step_layout)
+        settings_layout.addRow("Step:", self.step_spin)
         
         settings_group.setLayout(settings_layout)
         right_panel.addWidget(settings_group)
